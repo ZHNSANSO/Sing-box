@@ -170,43 +170,39 @@ generate_config() {
   cat > config.json << EOF
 {
   "log": {
-    "disabled": true,
-    "level": "info",
-    "timestamp": true
+    "disabled": true
   },
   "dns": {
     "servers": [
       {
-        "tag": "google",
-        "address": "tls://8.8.8.8",
-        "strategy": "ipv4_only",
-        "detour": "direct"
+        "tag": "local",
+        "address": "local"
+      },
+      {
+        "tag": "block",
+        "address": "rcode://success"
       }
     ],
     "rules": [
       {
         "rule_set": [
-          "geosite-openai"
-        ],
-        "server": "wireguard"
-      },
-      {
-        "rule_set": [
-          "geosite-netflix"
-        ],
-        "server": "wireguard"
-      },
-      {
-        "rule_set": [
           "geosite-category-ads-all"
+        ],
+        "server": "block"
+      },
+      {
+        "rule_set": [
+          "geosite-ads",
+          "geosite-malware",
+          "geosite-phishing",
+          "geosite-cryptominers",
+          "geoip-malware",
+          "geoip-phishing"
         ],
         "server": "block"
       }
     ],
-    "final": "google",
-    "strategy": "",
-    "disable_cache": false,
-    "disable_expire": false
+    "final": "local"
   },
     "inbounds": [
     {
@@ -214,6 +210,9 @@ generate_config() {
        "type": "hysteria2",
        "listen": "$IP",
        "listen_port": $hy2_port,
+      "sniff": true,
+      "sniff_override_destination": true,
+      "domain_strategy": "prefer_ipv6",
        "users": [
          {
              "password": "$UUID"
@@ -234,6 +233,9 @@ generate_config() {
       "type": "vmess",
       "listen": "::",
       "listen_port": $vmess_port,
+      "sniff": true,
+      "sniff_override_destination": true,
+      "domain_strategy": "prefer_ipv6",
       "users": [
       {
         "uuid": "$UUID"
@@ -250,6 +252,9 @@ generate_config() {
       "type": "tuic",
       "listen": "$IP",
       "listen_port": $tuic_port,
+      "sniff": true,
+      "sniff_override_destination": true,
+      "domain_strategy": "prefer_ipv6",
       "users": [
         {
           "uuid": "$UUID",
@@ -284,18 +289,18 @@ generate_config() {
     {
       "type": "wireguard",
       "tag": "wireguard-out",
-      "server": "162.159.195.100",
-      "server_port": 4500,
+      "server": "162.159.193.7",
+      "server_port": 2408,
       "local_address": [
-        "172.16.0.2/32",
-        "2606:4700:110:83c7:b31f:5858:b3a8:c6b1/128"
+        "100.96.0.56/32",
+        "2606:4700:110:818f:29c6:d9e8:faf2:2d23/128"
       ],
-      "private_key": "mPZo+V9qlrMGCZ7+E6z2NI6NOV34PD++TpAR09PtCWI=",
+      "private_key": "0FrohizW1wcEF7nElzhYcVsP+36CuMBQ28nddCnPiFo=",
       "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
       "reserved": [
-        26,
-        21,
-        228
+        130,
+        1,
+        176
       ]
     }
   ],
@@ -306,20 +311,29 @@ generate_config() {
         "outbound": "dns-out"
       },
       {
+        "port": 53,
+        "outbound": "dns-out"
+      },
+      {
         "ip_is_private": true,
-        "outbound": "direct"
-      },
-      {
-        "rule_set": [
-          "geosite-openai"
-        ],
         "outbound": "wireguard-out"
       },
       {
         "rule_set": [
-          "geosite-netflix"
+          "AWAvenue-Ads-Rule"
         ],
-        "outbound": "wireguard-out"
+        "outbound": "block"
+      },
+      {
+        "rule_set": [
+          "geosite-ads",
+          "geosite-malware",
+          "geosite-phishing",
+          "geosite-cryptominers",
+          "geoip-malware",
+          "geoip-phishing"
+        ],
+        "outbound": "block"
       },
       {
         "rule_set": [
@@ -330,19 +344,54 @@ generate_config() {
     ],
     "rule_set": [
       {
-        "tag": "geosite-netflix",
+        "tag": "AWAvenue-Ads-Rule",
         "type": "remote",
         "format": "binary",
-        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-netflix.srs",
+        "url": "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Singbox.srs",
         "download_detour": "direct"
       },
       {
-        "tag": "geosite-openai",
         "type": "remote",
+        "tag": "geosite-ads",
         "format": "binary",
-        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/openai.srs",
+        "url": "https://raw.githubusercontent.com/hiddify/hiddify-geo/rule-set/block/geosite-category-ads-all.srs",
         "download_detour": "direct"
-      },      
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-malware",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/hiddify/hiddify-geo/rule-set/block/geosite-malware.srs",
+        "download_detour": "direct"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-phishing",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/hiddify/hiddify-geo/rule-set/block/geosite-phishing.srs",
+        "download_detour": "direct"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-cryptominers",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/hiddify/hiddify-geo/rule-set/block/geosite-cryptominers.srs",
+        "download_detour": "direct"
+      },
+      {
+        "type": "remote",
+        "tag": "geoip-phishing",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/hiddify/hiddify-geo/rule-set/block/geoip-phishing.srs",
+        "download_detour": "direct"
+      },
+      {
+        "type": "remote",
+        "tag": "geoip-malware",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/hiddify/hiddify-geo/rule-set/block/geoip-malware.srs",
+        "download_detour": "direct"
+      },
       {
         "tag": "geosite-category-ads-all",
         "type": "remote",
@@ -351,13 +400,10 @@ generate_config() {
         "download_detour": "direct"
       }
     ],
-    "final": "direct"
+    "final": "wireguard-out"
    },
    "experimental": {
       "cache_file": {
-      "path": "cache.db",
-      "cache_id": "mycacheid",
-      "store_fakeip": true
     }
   }
 }
