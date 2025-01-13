@@ -13,7 +13,7 @@ curl -fsSL https://raw.githubusercontent.com/eooce/ssh_tool/main/ssh_tool.sh -o 
 # 2：Serv00|ct8 
 一键三协议安装脚本vless-reality|hy2|tuic 
 ```
-bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/test/sb_00.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/ZHNSANSO/sing-box/test/sb_00.sh)
 ```
 一键三协议无交互安装脚本vless-reality|vmess-splithttp|vmess-splithttp-tls(argo) 
 * 必填环境变量：VLESS_PORT ARGO_PORT
